@@ -1,0 +1,25 @@
+{
+  "name": "nosqlconnect-social-hub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derricn2/NoSQLConnect-Social-Hub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/derricn2/NoSQLConnect-Social-Hub/issues"
+  },
+  "homepage": "https://github.com/derricn2/NoSQLConnect-Social-Hub#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.4.4"
+  }
+}
