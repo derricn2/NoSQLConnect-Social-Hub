@@ -1,4 +1,4 @@
-const Thought = require('../models/Thought');
+const { Thought } = require('../models');
 
 // controller functions related to thoughts
 const thoughtController = {
@@ -9,6 +9,7 @@ const thoughtController = {
         res.json(thoughts);
       })
       .catch((err) => {
+        console.error('error getting thoughts:', err);
         res.status(400).json(err);
       });
   },
@@ -28,6 +29,7 @@ const thoughtController = {
         res.json(user);
       })
       .catch((err) => {
+        console.error('error creating thought:', err);
         res.status(400).json(err);
       });
   },
