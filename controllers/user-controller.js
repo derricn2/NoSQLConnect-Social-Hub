@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User, Thought } = require('../models');
 
 // controller functions related to users
 const userController = {
@@ -9,6 +9,7 @@ const userController = {
             res.json(users);
         })
         .catch((err) => {
+            console.error('error getting users:', err);
             res.status(400).json(err);
         });
     },
@@ -27,12 +28,16 @@ const userController = {
     // get user by ID
     getUserById(req, res) {
         User.findById(req.params.id)
-        .then((user) => {
-            res.json(user);
-        })
-        .catch((err) => {
-            res.status(400).json(err);
-        });
+            .populate('thoughts') // Populate thoughts field with actual thought documents
+            .then(user => {
+                if (!user) {
+                    return res.status(404).json({ message: 'user not found' });
+                }
+                res.json(user);
+            })
+            .catch(err => {
+                res.status(400).json(err);
+            });
     },
 
     // update user by ID

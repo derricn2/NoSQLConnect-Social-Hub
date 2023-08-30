@@ -1,4 +1,4 @@
-const { Thought } = require('../models');
+const { Thought, User } = require('../models');
 
 // controller functions related to thoughts
 const thoughtController = {
@@ -16,34 +16,62 @@ const thoughtController = {
 
   // create new thought
   createThought(req, res) {
-    Thought.create(req.body)
-      .then((thought) => {
-        // update user's thoughts array with the created thought's ID
-        return User.findByIdAndUpdate(
-          req.body.userId,
-          { $push: { thoughts: thought._id } },
-          { new: true }
-        );
-      })
-      .then((user) => {
-        res.json(user);
-      })
-      .catch((err) => {
-        console.error('error creating thought:', err);
-        res.status(400).json(err);
-      });
+    const { thoughtText, username, userId } = req.body;
+  
+    // check if userId exists
+    if (!userId) {
+      res.status(400).json({ message: 'a valid userId is required to create a thought' });
+    }
+  
+    // check if user with the provided userId exists
+    User.findById(userId)
+      .then(user => {
+        if (!user) {
+          return res.status(400).json({ message: 'user not found with the provided userId' });
+        }
+  
+        // create thought
+        return Thought.create({ thoughtText, username, userId })
+        .then(createdThought => {
+          // update user's thoughts array with created thought's ID
+          user.thoughts.push(createdThought._id);
+          
+          res.json({
+            message: 'thought created successfully',
+            thoughtId: createdThought._id,
+            thoughtText: createdThought.thoughtText,
+            username: createdThought.username,
+          });
+        });
+    })
+    .catch(err => {
+      console.error('error creating thought', err);
+      res.status(400).json(err);
+    });
   },
 
   // get thought by ID
   getThoughtById(req, res) {
-    Thought.findById(req.params.id)
-      .then((thought) => {
-        res.json(thought);
-      })
-      .catch((err) => {
-        res.status(400).json(err);
-      });
-  },
+    const thoughtId = req.params.id; // extract thought ID
+
+    if (!thoughtId) {
+        return res.status(400).json({ message: 'invalid thought ID' });
+    }
+
+    Thought.findById(thoughtId)
+        .then((thought) => {
+            if (!thought) {
+                console.log('thought not found');
+                return res.status(404).json({ message: 'thought not found' });
+            }
+
+            res.json(thought);
+        })
+        .catch((err) => {
+            console.error('error getting thought', err);
+            res.status(400).json(err);
+        });
+},
 
   // update a thought by ID
   updateThought(req, res) {
@@ -58,20 +86,43 @@ const thoughtController = {
 
   // delete thought by ID
   deleteThought(req, res) {
-    Thought.findByIdAndDelete(req.params.id)
+    const thoughtId = req.params.id; // extract thought ID
+
+    if (!thoughtId) {
+      return res.status(400).json({ message: 'invalid thought ID' });
+    }
+
+    let deletedThought;
+
+    Thought.findByIdAndDelete(thoughtId)
       .then((thought) => {
+        if (!thought) {
+          console.log('thought not found');
+          return res.status(404).json({ message: 'thought not found' });
+        }
+
+        deletedThought = thought; // store deleted thought
+
+        console.log('deleting thought:', deletedThought);
+
         // remove the thought's ID from the user's thoughts array
         return User.findByIdAndUpdate(
           thought.userId,
-          { $pull: { thoughts: thought._id } },
+          { $pull: { thoughts: thoughtId } },
           { new: true }
         );
       })
       .then((user) => {
-        res.json(user);
+        if (!user) {
+          console.log('user not found');
+          return res.status(404).json({ message: 'user not found' });
+        }
+
+        console.log('updated user:', user); // log updated user
       })
       .catch((err) => {
-        res.status(400).json(err);
+        console.error('error deleting thought', err);
+        res.status(500).json({ message: 'an error occurred while updating user' });
       });
   },
 
